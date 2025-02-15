@@ -22,7 +22,7 @@ mkfifo()
 
 msg 별 type 을 담아 send할 수 있고, mq를 수신하는 프로세스에서는 특정 type만 가져올 수 있음   
 
-msgget() 이 반환하는 sysv mq의 식별자는 IPC Key 기반 식별자 (fd가 아님에 주의. 별도의 key임)  
+msgget() 이 반환하는 sysv mq의 식별자는 `IPC Key 기반 식별자 (fd가 아님에 주의. 별도의 key임)`
     - 시스템 내에서 겹치면 안됨. key 값에 IPC\_PRIVATE 를 통해 겹치지 않는 key를 자동으로 반환 받을 수
     - key\_t = ftok(const char * pathname, int proj\_id)  // key값을 생성할 수 있지만 unique 하단 보장이 없음.
 
@@ -59,9 +59,61 @@ msgctl(msqid, cmd, struct msqid\_ds)
 
 ## POSIX Message Queue
 
-/dev/mqueue
 
+partial read가 불가능함. sysv mq 보다 좀 더 엄격히 메시지 경계를 지님  
+file i/o 기반의 동작. io multiplexing이 가능함  
+message 우선순위 적용 가능  
+notification 기능  
+링킹 단계에서 반드시 -lrt를 추가해야만 사용 가능  
+/dev/mqueue 에서 확인 가능  
 
+mqd\_t mq\_open(name, oflag)  
+mqd\_t mq\_open(name, oflag, mode, attr)  
+    - mq의 이름은 반드시 / 로 시작해야함. file 기반이기 때문  
+    - mq descriptor를 반환. 이건 sysv mq와 다르게 fd이다!
+
+mq\_close(mqd\_t) : mq를 닫는 개념
+mq\_unlink(name) : mq 파일을 지우는 개념
+
+mq\_send(mqd\_t, msg\_ptr, msg\_len, msg\_priority)
+    - priority : 0 ~ 32768
+
+mq\_receive(mqd\_t, msg\_ptr, msg\_len, * msg\_priority)
+    - msg\_len : 반드시 attr.mq\_msgsize 보다 크거나 같아야 함. partial read 자체가 생길 수 없는 이유 중 하나.
+    - priority : 0 ~ 32768
+
+mq\_setattr(mqd\_t, * mq\_attr)  
+mq\_getattr(* mq\_attr, * mq\_attr)  
+
+```
+    struct mq_attr {
+       long mq_flags;       Flags: 0 or O\_NONBLOCK 
+       long mq_maxmsg;      Max. # of messages on queue 
+       long mq_msgsize;     Max. message size (bytes) 
+       long mq_curmsgs;     # of messages currently in queue 
+    };
+```
+
+mq\_notify(mqd\_t, * sigevent )
+    - notification 설정
+
+```
+  struct sigevent {
+      int             sigev_notify; /* Notification type */
+      int             sigev_signo;  /* Signal number */
+      union sigval    sigev_value;  /* Signal value */
+      void          (*sigev_notify_function)(union sigval);
+                                    /* Notification function */
+      pthread_attr_t *sigev_notify_attributes;
+                                    /* Notification attributes */
+  };
+
+  union sigval {
+      int     sigval_int; /* Integer value */
+      void   *sigval_ptr; /* Pointer value */
+  };
+
+```
 
 
 

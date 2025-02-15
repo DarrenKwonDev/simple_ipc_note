@@ -112,11 +112,11 @@ int main(int argc, char **argv)
 
     if (!strcmp(argv[1], "send"))
     {
-        do_send();
+        ret = do_send();
     }
     else if (!strcmp(argv[1], "recv"))
     {
-        do_recv();
+        ret = do_recv();
     }
     else 
     {
