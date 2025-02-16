@@ -132,11 +132,10 @@ key        semid      owner      perms      nsems
 
 
 
-## socket (datagram), UDS
+## UDS
 
 
-UDP socket으로 전달하는 것은, msg boundary가 명확하므로 데이터를 전달하는 IPC 용으로도 사용 가능하다.
-다만 UDP는 신뢰성이 없다는 점을 고려해야 한다.  
+일반 socket으로 프로세스간 정보를 주고 받는 건 가능은 하다.
 Internet Domain Socket이지만 Local Address를 사용한 socket이어야 함.  
 내 생각엔 굳이 이런 패턴으로 하지 않는게 좋은 것 같다. 이런 용도로 쓰라고 UDS를 두었다.  
 
@@ -144,7 +143,9 @@ Unix Domain Socket(AF\_UNIX, UDS)을 사용하자.
 - UDS는 동일한 시스템 내에서 프로세스 간 통신을 위해 사용됨  
 - fd 전송 가능, 신뢰성이 보장됨, host only socket, filepath로 address
 - 파일 시스템을 통해 통신하며, 데이터 전송은 커널 내부에서 처리됨. 때문에 UDS는 네트워크 스택을 거치지 않기 때문에 UDP에 비해 훨씬 빠름
-
+- UDS 라고 하더라도 통신 방식을 tcp, udp 중 하나로 결정하여야 함
+    - tcp의 경우 partial read, write를 보완할 것
+    - udp의 경우 msg boundary가 명확하여 partial read, write 걱정이 없지만 유실 가능성이 있음
 
 
 
