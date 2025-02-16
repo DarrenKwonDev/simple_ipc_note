@@ -83,9 +83,9 @@ mq\_receive(mqd\_t, msg\_ptr, msg\_len, * msg\_priority)
     - priority : 0 ~ 32768
 
 mq\_setattr(mqd\_t, * mq\_attr)  
-mq\_getattr(* mq\_attr, * mq\_attr)  
+mq\_getattr( * mq\_attr, * mq\_attr)  
 
-```
+```c
     struct mq_attr {
        long mq_flags;       Flags: 0 or O\_NONBLOCK 
        long mq_maxmsg;      Max. # of messages on queue 
@@ -97,7 +97,7 @@ mq\_getattr(* mq\_attr, * mq\_attr)
 mq\_notify(mqd\_t, * sigevent )
     - notification 설정
 
-```
+```c
   struct sigevent {
       int             sigev_notify; /* Notification type */
       int             sigev_signo;  /* Signal number */
@@ -116,8 +116,6 @@ mq\_notify(mqd\_t, * sigevent )
 ```
 
 
-
-
 ## `ipcs` view  
 
 show System V IPC facilities  
@@ -131,6 +129,28 @@ key        shmid      owner      perms      bytes      nattch     status
 
 ------ Semaphore Arrays --------
 key        semid      owner      perms      nsems     
+
+
+
+## socket (datagram), UDS
+
+
+UDP socket으로 전달하는 것은, msg boundary가 명확하므로 데이터를 전달하는 IPC 용으로도 사용 가능하다.
+다만 UDP는 신뢰성이 없다는 점을 고려해야 한다.  
+Internet Domain Socket이지만 Local Address를 사용한 socket이어야 함.  
+내 생각엔 굳이 이런 패턴으로 하지 않는게 좋은 것 같다. 이런 용도로 쓰라고 UDS를 두었다.  
+
+Unix Domain Socket(AF\_UNIX, UDS)을 사용하자. 
+- UDS는 동일한 시스템 내에서 프로세스 간 통신을 위해 사용됨  
+- fd 전송 가능, 신뢰성이 보장됨, host only socket, filepath로 address
+- 파일 시스템을 통해 통신하며, 데이터 전송은 커널 내부에서 처리됨. 때문에 UDS는 네트워크 스택을 거치지 않기 때문에 UDP에 비해 훨씬 빠름
+
+
+
+
+
+
+
 
 
 
