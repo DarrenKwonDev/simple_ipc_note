@@ -116,22 +116,6 @@ mq\_notify(mqd\_t, * sigevent )
 ```
 
 
-## `ipcs` view  
-
-show System V IPC facilities  
-
------- Message Queues --------
-key        msqid      owner      perms      used-bytes   messages    
-0x61130001 0          server01   644        0            0           
-
------- Shared Memory Segments --------
-key        shmid      owner      perms      bytes      nattch     status      
-
------- Semaphore Arrays --------
-key        semid      owner      perms      nsems     
-
-
-
 ## UDS
 
 
@@ -150,9 +134,56 @@ Unix Domain Socket(AF\_UNIX, UDS)을 사용하자.
 
 
 
+## mmap
+
+void * mmap(void addr[.length], size\_t length, int prot, int flags, int fd, off\_t offset);  
+    - addr는 커널에게 원하는 주소의 '힌트' (반드시 그 주소로 주지는 않음) 대부분 NULL로 넘겨서 자동으로 할당 받음.  
+    - offset은 반드시 page size의 배수  
+    - prot(protection) : PROT\_EXEC | PORT\_READ | PROT\_WRITE | PROT\_NONE  
+    - flag : MAP\_SHARED(shared memory로 쓰려면 필수 ), MAP\_PRIVATE, MAP\_FIXED, MAP\_ANONYMOUS  
+    
+int munmap(void addr[.length], size_t length);
+    - mmap 으로 받은 주소를 풀겠다.  
+
+
+- 일반 파일의 mmap
+    - unrelated processes 간에도 사용 가능. 파일을 기준으로 mmap을 하니.
+    - mmap 후에 fd를 close해도 됩니다. mmap은 파일을 메모리에 매핑한 후에는 파일 디스크립터가 더 이상 필요하지 않습니다
+    - munmap을 호출해도 실제 파일은 삭제되지 않습니다. 그냥 남아 있음
+
+
+- anonymous mapping (MAP\_SHARED | MAP\_ANONYMOUS)
+    - 특정 file을 지정하지 않고 익명의 파일에 메모리 매핑 (/dev/zero 에 mmap한 것과 동일)
+    - 그냥 malloc 한거랑 뭔 차인가?
+        - malloc은 fork() 후에 Copy-on-Write 되면 완전히 다른 영역을 가리킴. 프로세스간 공유 안됨
+        - anon mapping은 fork() 후에도 각 프로세스들이 접근 가능함 
+    - related proc 끼리만 사용 가능
 
 
 
+## how to monitoring?
 
+show System V IPC facilities  
+
+------ Message Queues --------
+key        msqid      owner      perms      used-bytes   messages    
+0x61130001 0          server01   644        0            0           
+
+------ Shared Memory Segments --------
+key        shmid      owner      perms      bytes      nattch     status      
+
+------ Semaphore Arrays --------
+key        semid      owner      perms      nsems     
+
+
+POSIX IPC는 다른 방식으로 확인해야 합니다:
+
+POSIX 공유메모리는 /dev/shm 디렉토리에서 확인
+POSIX 세마포어는 /dev/shm 또는 /dev/posix/sem에서 확인
+POSIX 메시지큐는 /dev/mqueue에서 확인
+
+mmap으로 매핑된 파일은 /proc/<pid>/maps  
+mkfifo 는 실제 파일이 생성되는 named pipe니까 파일을 직접 확인해야하고  
+pipe는 프로세스 종료시 수거되므로 아직 프로세스가 살아 있을 때 /proc/<pid>/fd 에서 직접 확인해야  
 
 
