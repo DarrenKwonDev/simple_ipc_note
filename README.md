@@ -160,6 +160,34 @@ int munmap(void addr[.length], size_t length);
     - related proc 끼리만 사용 가능
 
 
+## system V shm
+
+
+
+
+## POSIX shm
+
+
+
+일반적인 posix shm 프로그래밍 시퀀스
+
+* create의 경우
+fd = shm_open(); 
+ftruncate(fd, sizse); // resize shm
+ptr = mmap(fd);
+munmap(ptr);
+shm_unlink(fd);
+
+* attach의 경우
+fd = shm_open(); 
+fstat(fd, &stat);	// attach할 때 create한 size만큼의 mmap에 attach 하기 위해서 사이즈를 얻어와야
+ptr = mmap(fd, stat.st_size);
+munmap(ptr);
+shm_unlink(fd);
+
+
+
+
 
 ## how to monitoring?
 
