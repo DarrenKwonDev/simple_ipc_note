@@ -163,13 +163,16 @@ int munmap(void addr[.length], size_t length);
 ## system V shm
 
 
+shmget -> shmat -> 사용 -> shmdt    
 
 
 ## POSIX shm
 
 
 
-일반적인 posix shm 프로그래밍 시퀀스
+일반적인 posix shm 프로그래밍 시퀀스.
+사실상 file 기반 mmap을 사용하는 것과 동일한 시퀀스인데 open 대신 shm_open을 사용한 것 정도의 차이임 .  
+
 
 * create의 경우
 fd = shm_open(); 
