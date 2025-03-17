@@ -188,9 +188,80 @@ ptr = mmap(fd, stat.st_size);
 munmap(ptr);
 shm_unlink(fd);
 
+## semaphore  
+
+- System V 세마포어: 항상 프로세스 간 동기화용  
+    - 한 번에 여러 개의 세마포어를 세트(set)로 만들고 다룰 수 있는 유연성을 제공
+    - 커널 내에 영속적으로 객체를 생성하고 관리하기 때문에 무겁고 인터페이스가 복잡하다는 단점이 있다
+- POSIX 세마포어: 스레드 간 또는 프로세스 간 동기화 모두 가능 (IPC 자원의 동시성 문제를 해결하기 위함)  
+    - 세마포어 집합 개념이 없어 필요에 따라 개별 세마포어를 여러 개 만들면 되므로 이해와 사용이 더 쉽다  
+    - unnamed semaphore
+    - named semaphore
+- pthread 뮤텍스: 주로 스레드 간 동기화용  
+
+counting semaphore  
+binary semaphore (= mutex)  
 
 
+## system V Semaphore  
 
+1. semget(key_t semid, int nsems, int semflg)  
+- 기본적으로 sysv sem은 세마포어 1세트를 만들고 그 안에 nsems 개의 semaphore가 존재함  
+
+2. semop(semid, struct sembuf *sops, nsops)  
+struct sembuf {  
+   unsigned short sem_num;  // semaphore number
+   short          sem_op;   // semaphore operation (양수 해제, 0 이면 sem 값이 0될 때 까지 대기, 음수면 sem 획득)
+   short          sem_flg;  // operation flags (IPC_NOWAIT, SEM_UNDO)
+}  
+
+3. semctl(int semid, int semnum, int cmd, ...)
+
+
+## POSIX Semaphore  
+
+- unnamed semaphore 
+    - shared memory 내의 메모리 영역을 이용  
+    - 즉, shared memory 영역 일부를 semaphore로 사용  
+    - sem_init, sem_destroy
+
+- named semaphore  
+    - ID를 가지는 별도의 객체 생성  
+    - shared memory 이외의 자원에 대한 동기화가 필요할 때 사용하기에 좋음  
+    - 프로세스 간의 동기화
+    - sem_open, sem_close, sem_unlink
+
+- 공통:  sem_wait (획득) sem_post (해제)
+
+### unnamed semaphore  
+
+sem_init(sem_t *sem, int pshared, unsigned int value);
+- sem : 초기화 할 semaphore 위치  
+- pshared : 0 : process 내 thread간 공유, 1 : process 간 공유  
+- value : semaphore 초기값   
+
+sem_destroy(sem_t *sem)
+- sem 반납. 다른 proc, thread가 blocking 중인 semaphore를 destroy 하면 안 됨  
+
+### named semaphore  
+
+- 열기   
+sem_t sem_open(const char *name, int oflag); 
+
+- 생성   
+sem_t sem_open(const char *name, int oflag, mode_t mode, unsigned int value);
+
+
+### 공통  
+
+- 해제(너 나가라)  
+int sem_post(sem_t *sem);  
+
+- 획득 요청
+
+sem_wait : 리소스 획득 요청  
+sem_trywait : 리소스 획득 시도  
+sem_timedwait : 타임아웃을 시도하고 리소스 획득 요청  
 
 ## how to monitoring?
 
